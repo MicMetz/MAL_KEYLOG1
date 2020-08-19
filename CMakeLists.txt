@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(project_1)
 
 set(CMAKE_CXX_STANDARD 14)
+set(PYTHON_FILES Toolkit1_Server/c2server/botserver.py Botserver.py)
 
 add_executable(project_1 socketApp1.cpp)
 if(WIN32)
