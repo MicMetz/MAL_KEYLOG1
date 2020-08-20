@@ -1,7 +1,7 @@
 import socket  # Socket Library
 import threading  # Manage concurrent threads
 import sys  # System Library. Parse arguments
-import time # Delaying
+import time  # Delaying
 import queue  # Exchange information between mutiple threads
 import os  # Operating system functionality
 
