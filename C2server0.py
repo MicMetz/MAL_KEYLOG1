@@ -71,7 +71,7 @@ class BotControl(threading.Thread):
             recv_bot_cmd = self.que.get()
             print("\nReceived Command: " + recv_bot_cmd + " for " + slave_id)
             try:
-                recv_bot_cmd += "\n"
+                #recv_bot_cmd += "\n"
                 self.client.send(recv_bot_cmd.encode('utf-8'))
                 recv_val = (self.client.recv(1024)).decode('utf-8')
                 print(recv_val)

